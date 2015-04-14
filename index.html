@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Three.js Vector to 3D by @kidatart</title>
+	<link rel="stylesheet" href="http//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+	<script src="http://threejs.org/build/three.min.js"></script>
+	<script src="http://threejs.org/examples/js/controls/TrackballControls.js"></script>
+	<script src="http://threejs.org/examples/js/shaders/CopyShader.js"></script>
+	<script src="http://threejs.org/examples/js/shaders/FilmShader.js"></script>
+	<script src="http://threejs.org/examples/js/postprocessing/EffectComposer.js"></script>
+	<script src="http://threejs.org/examples/js/postprocessing/ShaderPass.js"></script>
+	<script src="http://threejs.org/examples/js/postprocessing/MaskPass.js"></script>
+	<script src="http://threejs.org/examples/js/postprocessing/RenderPass.js"></script>
+	<script src="http://threejs.org/examples/js/postprocessing/FilmPass.js"></script>
+
+	<!-- 
+
+		Developed by @kidatart for @kid_industry.
+
+		Thanks to :
+		Ai->Canvas by Mike Swanson - http://blog.mikeswanson.com/ai2canvas
+		Three.js by mrd00b - http://threejs.org
+		Pizza by Pizza - Pizza
+
+		If you need help understanding anything in this script feel free to tweet me @kidatart.
+
+		Junior
+
+	-->
+	
+</head>
+<body>
+	<div id="KID"></div>
+	<script>
+
+		var renderer = new THREE.WebGLRenderer();
+			renderer.shadowMapEnabled = true;
+			renderer.shadowMapDarkness = 0.55;
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+		var KIDCanvas = document.getElementById('KID');
+			KIDCanvas.appendChild( renderer.domElement );
+
+		var clock = new THREE.Clock();
+		var scene = new THREE.Scene();
+			// scene.add( new THREE.GridHelper( 100, 50 ) ); // 3d grib
+
+		var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
+			camera.position.set( 0, 10, 300);
+
+		var controls = new THREE.TrackballControls( camera, renderer.domElement );
+			controls.minDistance = 100;
+			controls.maxDistance = 300;
+
+		var hemiLight = new THREE.HemisphereLight( 0x8c7050, 0xFFFFFF, 0.3 );
+			hemiLight.position.set( 0, 200, 0 );
+			scene.add( hemiLight );
+
+		var d = 300;
+		var dirLight = new THREE.DirectionalLight( 0x8c7050, 1 );
+			dirLight.position.set( 200, 0, 0 );
+			dirLight.position.multiplyScalar( 100);
+			dirLight.name = "dirlight";
+			dirLight.shadowCameraVisible = true;
+			dirLight.castShadow = true;
+			dirLight.shadowMapWidth = dirLight.shadowMapHeight = 1024*2;
+			dirLight.shadowCameraLeft = -d;
+			dirLight.shadowCameraRight = d;
+			dirLight.shadowCameraTop = d;
+			dirLight.shadowCameraBottom = -d;
+			dirLight.shadowCameraFar = 300;
+			dirLight.shadowBias = -0.0001;
+			dirLight.shadowDarkness = 0.35;
+			scene.add( dirLight );
+
+		var KID = new THREE.Object3D();
+			KID.scale.multiplyScalar(.05);
+			scene.add(KID);
+
+		var K = new THREE.Shape();
+			K.moveTo(288.4, 0.0);
+			K.lineTo(288.4, 864.0);
+			K.lineTo(0.0, 864.0);
+			K.lineTo(0.0, 0.0);
+			K.lineTo(288.4, 0.0);
+
+		var K2 = new THREE.Shape();
+			K2.moveTo(864.4, 0.0);
+			K2.lineTo(576.4, 0.0);
+			K2.lineTo(288.4, 432.0);
+			K2.lineTo(576.4, 864.0);
+			K2.lineTo(864.0, 864.0);
+			K2.lineTo(576.4, 432.0);
+			K2.lineTo(864.4, 0.0);
+
+		var I = new THREE.Shape();
+			I.moveTo(936.4, 0.0);
+			I.lineTo(936.4, 864.0);
+			I.lineTo(1224.4, 864.0);
+			I.lineTo(1224.4, 0.0);
+			I.lineTo(936.4, 0.0);
+
+		var D = new THREE.Shape();
+			D.moveTo(2160.4, 864.0);
+			D.lineTo(1728.5, 864.0);
+			D.bezierCurveTo(1489.8, 864.0, 1296.5, 670.7, 1296.5, 431.9);
+			D.lineTo(1296.4, 432.0);
+			D.bezierCurveTo(1296.4, 193.1, 1489.6, 0.0, 1728.5, 0.0);
+			D.lineTo(2160.4, 0.0);
+			D.lineTo(2160.4, 864.0);
+			D.moveTo(1872.4, 288.0);
+			D.lineTo(1728.5, 288.0);
+			D.bezierCurveTo(1649.5, 288.0, 1585.6, 353.0, 1585.6, 432.0);
+			D.bezierCurveTo(1585.6, 511.6, 1648.9, 576.0, 1728.5, 576.0);
+			D.lineTo(1872.4, 576.0);
+			D.lineTo(1872.4, 288.0);
+
+		var addShape = function(shape, extrudeSettings, color, x, y, z, rx, ry, rz, s, parent){
+
+			var geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+				geometry.mergeVertices();
+				geometry.computeVertexNormals();
+
+			var material = new THREE.MeshPhongMaterial({ 
+				color: color, 
+				specular: color, 
+				shininess: 25, 
+				vertexColors: THREE.FaceColors, 
+				shading: THREE.SmoothShading
+			});
+
+			var mesh = new THREE.Mesh(geometry, material );
+				mesh.position.set(x, y, z);
+				mesh.rotation.set(rx, ry, rz);
+				mesh.scale.set(s, s, s);
+				parent.add(mesh);
+
+		}
+
+		var extrudeSettings = {
+			amount: 400
+		};
+
+		addShape(K, extrudeSettings, 0x8c7050, -2160/2, 1080/2, extrudeSettings.amount/2, 0, 3.14, 3.14, 1,KID);
+		addShape(K2,extrudeSettings, 0x8c7050, -2160/2, 1080/2, extrudeSettings.amount/2, 0, 3.14, 3.14, 1,KID);
+		addShape(I, extrudeSettings, 0x8c7050, -2160/2, 1080/2, extrudeSettings.amount/2, 0, 3.14, 3.14, 1,KID);
+		addShape(D, extrudeSettings, 0x8c7050, -2160/2, 1080/2, extrudeSettings.amount/2, 0, 3.14, 3.14, 1,KID);
+
+		var renderModel = new THREE.RenderPass( scene, camera );
+		var effectFilm = new THREE.FilmPass( 5, 0.8, 2048, false );
+			effectFilm.renderToScreen = true;
+
+		var composer = new THREE.EffectComposer( renderer );
+			composer.addPass( renderModel );
+			composer.addPass( effectFilm );
+
+		var animate = function(){
+
+			var delta = clock.getDelta();
+			requestAnimationFrame( animate );
+			controls.update();
+			renderer.clear();
+			composer.render( delta );
+
+		}
+
+		animate();
+
+		window.addEventListener('resize', function() {
+
+			windowHalfX = window.innerWidth / 2;
+			windowHalfY = window.innerHeight / 2;
+
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			composer.reset();
+
+		});
+
+	</script>
+</body>
+</html>
